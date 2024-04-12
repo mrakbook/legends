@@ -1,0 +1,31 @@
+# Default runtime configuration for legends
+
+# Git / repo
+base_branch: main
+remote_name: origin
+visibility: private        # private | public
+owner: null                # e.g., "your-username" or "your-org"; null -> use GH auth default
+
+# Identity for backdated commits.
+# If left blank, legends will resolve your identity from the authenticated
+# GitHub CLI account (`gh api user`). We prefer your verified primary email
+# when the token has the `user:email` scope; otherwise we fall back to the
+# ID-based noreply address: "<id>+<login>@users.noreply.github.com".
+# (GitHub attributes commits by email, not display name.)
+author:
+  name: ""    # If empty: GitHub "name" (fallback to login)
+  email: ""   # If empty: verified primary email (if available) else ID-based noreply
+
+# Optional: explicitly set committer identity; if blank, defaults to author.*,
+# but the CLI will prefer setting committer.name to your GitHub username.
+committer:
+  name: ""
+  email: ""
+
+# Which env var to read a token from when needed (gh usually manages auth itself)
+token_env: GITHUB_TOKEN
+
+# Behavior flags
+# dry_run is primarily controlled via CLI or environment (GHB_DRY_RUN),
+# but you can set a default here if desired.
+# dry_run: false

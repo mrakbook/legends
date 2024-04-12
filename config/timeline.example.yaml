@@ -1,0 +1,56 @@
+# Example: drive a full-year simulation from a single file.
+# (You can build a small runner to read this and call the CLI commands in order.)
+
+repo: backdated-annual-demo
+owner: your-username-or-org
+visibility: private
+base_branch: main
+remote_name: origin
+
+initial_commit:
+  date: "2024-12-01T12:00:00"
+  message: "Initial commit"
+  description: "Repository initialized for backdated demo"
+
+features:
+  - branch: feature-login
+    start_date: "2025-02-01T09:00:00"
+    commits:
+      - date: "2025-02-10T15:00:00"
+        message: "Implement login backend"
+      - date: "2025-02-15T10:30:00"
+        message: "Add frontend for login"
+    pr:
+      title: "Feature: User Login"
+      body: |
+        Adds backend + UI for user login.
+        - JWT-based sessions
+        - Form validation
+      merge_date: "2025-03-01T17:00:00"
+
+  - branch: feature-profile
+    start_date: "2025-03-05T10:00:00"
+    commits:
+      - date: "2025-03-08T11:20:00"
+        message: "Profile service skeleton"
+      - date: "2025-03-12T14:05:00"
+        message: "Avatar upload + resizing"
+    pr:
+      title: "Feature: User Profile"
+      body: "Adds profile pages and avatar upload."
+      merge_date: "2025-03-20T16:30:00"
+
+  - branch: fix-auth-timeout
+    start_date: "2025-04-01T08:00:00"
+    commits:
+      - date: "2025-04-02T09:00:00"
+        message: "Fix token refresh race condition"
+    pr:
+      title: "Fix: auth token refresh race"
+      body: "Stabilizes refresh flow under intermittent network failures."
+      merge_date: "2025-04-03T13:00:00"
+
+# Optional global identity override for all commits (leave empty to use git config)
+author:
+  name: "Your Name"
+  email: "you@example.com"
