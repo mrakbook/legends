@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "legends"
-version = "0.1.0"
+version = "0.2.0"
 description = "Automate backdated Git history (repo, branches, commits, PRs, merges) using git + GitHub CLI."
 requires-python = ">=3.9"
 dependencies = ["PyYAML>=6.0"]
