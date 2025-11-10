@@ -1,17 +1,17 @@
-# gh-backdate
+# legends
 
 Automate **backdated** Git history (repositories, branches, commits, PRs, merges) using `git` and the GitHub CLI (`gh`).  
 This tool lets you create a repository that *appears* to have evolved over time: you specify the dates and the CLI writes
 commits and merge commits carrying those timestamps. PRs are orchestrated through `gh` for a realistic workflow.
 
 > **Important limitation**: GitHub does **not** allow backdating PR creation, review, or comment timestamps.  
-> gh-backdate backdates **commits** and **merge commits**. PRs, reviews, and comments will show the time you performed the action.
+> legends backdates **commits** and **merge commits**. PRs, reviews, and comments will show the time you performed the action.
 
 ---
 
 ## Table of contents
 
-- [gh-backdate](#gh-backdate)
+- [legends](#legends)
   - [Table of contents](#table-of-contents)
   - [Features](#features)
   - [How it works (at a glance)](#how-it-works-at-a-glance)
@@ -61,7 +61,7 @@ commits and merge commits carrying those timestamps. PRs are orchestrated throug
 
 - Git commit timestamps are controlled by environment variables:
   - `GIT_AUTHOR_DATE` and `GIT_COMMITTER_DATE` are set to your desired **past** datetime.
-  - gh-backdate normalizes input like `YYYY-MM-DD`, `YYYY-MM-DD HH:MM[:SS]`, ISO8601 (with `Z` or `+/-HH:MM`), treating **naïve** values as **local time**, then storing in **UTC**.
+  - legends normalizes input like `YYYY-MM-DD`, `YYYY-MM-DD HH:MM[:SS]`, ISO8601 (with `Z` or `+/-HH:MM`), treating **naïve** values as **local time**, then storing in **UTC**.
 - Merge commits are created locally with those same variables and then pushed. GitHub recognizes the merge and will close the PR as merged.
 - PRs, reviews, and comments are created through `gh`. Their timestamps cannot be backdated, but the merge commit itself is backdated and shows in the repo’s history accordingly.
 
@@ -75,18 +75,18 @@ commits and merge commits carrying those timestamps. PRs are orchestrated throug
 
 ```mermaid
 flowchart TD
-    A[Run: gh-backdate commit-all] --> B[Checkout base branch]
+    A[Run: legends commit-all] --> B[Checkout base branch]
     B --> C[Create/checkout feature branch]
-    C --> D[Create change (or allow-empty)]
+    C --> D[Create change (or allow empty)]
     D --> E[Backdated commit on branch]
     E --> F[Push branch (upstream if first push)]
-    F --> G[Open PR via gh]
+    F --> G[Open PR (gh)]
     G --> H{Optional review/comment?}
     H -->|Yes| I[gh pr review/comment]
     H -->|No| J[Skip]
     I --> K[Checkout base & pull]
     J --> K[Checkout base & pull]
-    K --> L[Merge --no-ff --no-commit]
+    K --> L[Merge (no-ff, no-commit)]
     L --> M[Create merge commit (backdated)]
     M --> N[Push base]
     N --> O[Close PR & delete branch]
@@ -97,7 +97,7 @@ flowchart TD
 ```mermaid
 sequenceDiagram
     participant Dev as Developer
-    participant CLI as gh-backdate
+    participant CLI as legends
     participant Git as git
     participant GH as gh (GitHub CLI)
 
@@ -175,9 +175,9 @@ flowchart LR
 Using the included Makefile:
 
 ```bash
-make install            # creates .venv and installs gh-backdate in editable mode
+make install            # creates .venv and installs legends in editable mode
 . .venv/bin/activate    # activate the virtualenv
-gh-backdate --help
+legends --help
 ```
 
 Or manually:
@@ -196,75 +196,49 @@ pip install -e .
 Create a repo whose **initial commit** is backdated to **Dec 1, 2024** (private by default):
 
 ```bash
-gh-backdate create-repo my-backdated-repo \
-  --owner your-username-or-org \
-  --date "2024-12-01T12:00:00" \
-  --private \
-  --description "Backdated repo demo"
+legends create-repo my-backdated-repo   --owner your-username-or-org   --date "2024-12-01T12:00:00"   --private   --description "Backdated repo demo"
 ```
 
 Create a **feature branch** with a backdated **birth commit**:
 
 ```bash
-gh-backdate create-branch feature-login \
-  --base main \
-  --date "2025-02-01T09:00:00" \
-  --message "chore(feature-login): branch birth @ 2025-02-01T09:00:00" \
-  --push
+legends create-branch feature-login   --base main   --date "2025-02-01T09:00:00"   --message "chore(feature-login): branch birth @ 2025-02-01T09:00:00"   --push
 ```
 
 Make **backdated commits** on that branch:
 
 ```bash
-gh-backdate commit --branch feature-login \
-  --date "2025-02-10T15:00:00" --message "Implement login backend" --add-all --push
+legends commit --branch feature-login   --date "2025-02-10T15:00:00" --message "Implement login backend" --add-all --push
 
-gh-backdate commit --branch feature-login \
-  --date "2025-02-15T10:30:00" --message "Add frontend for login" --add-all --push
+legends commit --branch feature-login   --date "2025-02-15T10:30:00" --message "Add frontend for login" --add-all --push
 ```
 
 Open a PR and **merge with a backdated merge commit**:
 
 ```bash
-gh-backdate open-pr --branch feature-login --base main \
-  --title "Feature: User Login" \
-  --body "Adds backend + UI for user login."
+legends open-pr --branch feature-login --base main   --title "Feature: User Login"   --body "Adds backend + UI for user login."
 
-gh-backdate merge-pr --branch feature-login --base main \
-  --date "2025-03-01T17:00:00" --delete-branch
+legends merge-pr --branch feature-login --base main   --date "2025-03-01T17:00:00" --delete-branch
 ```
 
 Run the **one-shot flow**:
 
 ```bash
-gh-backdate commit-all \
-  --base main \
-  --branch feature-login \
-  --commit-date "2025-02-10T15:00:00" \
-  --message "Implement login" \
-  --pr-title "Feature: Login" \
-  --pr-body "Adds backend + UI." \
-  --merge-date "2025-03-01T17:00:00" \
-  --delete-branch
+legends commit-all   --base main   --branch feature-login   --commit-date "2025-02-10T15:00:00"   --message "Implement login"   --pr-title "Feature: Login"   --pr-body "Adds backend + UI."   --merge-date "2025-03-01T17:00:00"   --delete-branch
 ```
 
 ---
 
 ## CLI commands
 
-> Run `gh-backdate --help` for details; highlights below.
+> Run `legends --help` for details; highlights below.
 
 ### `create-repo`
 
 Create a repo from the local folder with a **backdated initial commit** and push it via `gh`.
 
 ```bash
-gh-backdate create-repo <name> \
-  [--owner <org-or-user>] [--description <text>] \
-  [--branch <main|trunk|…>] [--message "Initial commit"] \
-  [--date "<ISO or YYYY-MM-DD HH:MM:SS>"] \
-  [--author-name <name>] [--author-email <email>] \
-  [--private|--public] [--remote origin]
+legends create-repo <name>   [--owner <org-or-user>] [--description <text>]   [--branch <main|trunk|…>] [--message "Initial commit"]   [--date "<ISO or YYYY-MM-DD HH:MM:SS>"]   [--author-name <name>] [--author-email <email>]   [--private|--public] [--remote origin]
 ```
 
 ### `create-branch`
@@ -272,8 +246,7 @@ gh-backdate create-repo <name> \
 Create a branch from base and record its **birth** via an **empty backdated commit**.
 
 ```bash
-gh-backdate create-branch <branch> \
-  [--base main] --date "<ISO>" [--message "..."] [--push]
+legends create-branch <branch>   [--base main] --date "<ISO>" [--message "..."] [--push]
 ```
 
 ### `commit`
@@ -281,8 +254,7 @@ gh-backdate create-branch <branch> \
 Make a **backdated** commit on a branch; can stage all or `--touch` a file.
 
 ```bash
-gh-backdate commit --branch <branch> --date "<ISO>" \
-  --message "..." [--allow-empty] [--add-all] [--touch <path>] [--push]
+legends commit --branch <branch> --date "<ISO>"   --message "..." [--allow-empty] [--add-all] [--touch <path>] [--push]
 ```
 
 ### `open-pr`
@@ -290,7 +262,7 @@ gh-backdate commit --branch <branch> --date "<ISO>" \
 Open a PR via GitHub CLI.
 
 ```bash
-gh-backdate open-pr --branch <head> [--base main] [--title ...] [--body ...] [--draft]
+legends open-pr --branch <head> [--base main] [--title ...] [--body ...] [--draft]
 ```
 
 ### `merge-pr`
@@ -298,8 +270,7 @@ gh-backdate open-pr --branch <head> [--base main] [--title ...] [--body ...] [--
 Perform a **local, backdated** merge commit and push; closes the PR & optionally deletes the branch.
 
 ```bash
-gh-backdate merge-pr [--branch <head> | --pr <number>] \
-  [--base main] --date "<ISO>" [--message "..."] [--delete-branch|--no-delete-branch]
+legends merge-pr [--branch <head> | --pr <number>]   [--base main] --date "<ISO>" [--message "..."] [--delete-branch|--no-delete-branch]
 ```
 
 ### `commit-all`
@@ -307,11 +278,7 @@ gh-backdate merge-pr [--branch <head> | --pr <number>] \
 One-shot: backdated commit → open PR → optional review/comment → backdated merge → cleanup.
 
 ```bash
-gh-backdate commit-all --branch <branch> [--base main] \
-  --commit-date "<ISO>" --message "..." \
-  [--touch <path>] [--allow-empty] \
-  [--pr-title ...] [--pr-body ...] [--draft] \
-  --merge-date "<ISO>" [--delete-branch]
+legends commit-all --branch <branch> [--base main]   --commit-date "<ISO>" --message "..."   [--touch <path>] [--allow-empty]   [--pr-title ...] [--pr-body ...] [--draft]   --merge-date "<ISO>" [--delete-branch]
   [--review] [--review-body "..."] [--comment "..."]
 ```
 
@@ -382,23 +349,19 @@ Create three branches and simulate a small quarter of activity (dates are illust
 
 ```bash
 # Repo created "last December"
-gh-backdate create-repo quarterly-demo --date "2024-12-01T10:00:00" --private
+legends create-repo quarterly-demo --date "2024-12-01T10:00:00" --private
 
 # Feature A
-gh-backdate create-branch feature-a --date "2025-02-01T09:00:00" --push
-gh-backdate commit --branch feature-a --date "2025-02-05T14:00:00" --message "feat(a): add core" --allow-empty --push
-gh-backdate open-pr --branch feature-a --title "Feature A"
-gh-backdate merge-pr --branch feature-a --date "2025-02-20T16:00:00" --delete-branch
+legends create-branch feature-a --date "2025-02-01T09:00:00" --push
+legends commit --branch feature-a --date "2025-02-05T14:00:00" --message "feat(a): add core" --allow-empty --push
+legends open-pr --branch feature-a --title "Feature A"
+legends merge-pr --branch feature-a --date "2025-02-20T16:00:00" --delete-branch
 
 # Feature B (one-shot)
-gh-backdate commit-all --branch feature-b --commit-date "2025-03-10T11:00:00" \
-  --message "feat(b): initial" --pr-title "Feature B" \
-  --merge-date "2025-03-18T18:00:00" --delete-branch
+legends commit-all --branch feature-b --commit-date "2025-03-10T11:00:00"   --message "feat(b): initial" --pr-title "Feature B"   --merge-date "2025-03-18T18:00:00" --delete-branch
 
 # Hotfix
-gh-backdate commit-all --branch hotfix-timeout --commit-date "2025-04-02T09:00:00" \
-  --message "fix: token refresh race" --pr-title "Fix: auth token refresh race" \
-  --merge-date "2025-04-03T13:00:00" --delete-branch
+legends commit-all --branch hotfix-timeout --commit-date "2025-04-02T09:00:00"   --message "fix: token refresh race" --pr-title "Fix: auth token refresh race"   --merge-date "2025-04-03T13:00:00" --delete-branch
 ```
 
 ---
