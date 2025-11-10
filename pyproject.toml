@@ -10,7 +10,7 @@ requires-python = ">=3.9"
 dependencies = ["PyYAML>=6.0"]
 readme = "README.md"
 license = { text = "MIT" }
-authors = [{ name = "Your Name" }]
+authors = [{ name = "Boris Karaoglanov" }]
 
 [project.scripts]
 legends = "legends.cli:main"
@@ -47,9 +47,8 @@ allow_zero_version = true
 commit_parser = "conventional"
 tag_format = "v{version}"
 changelog_file = "CHANGELOG.md"
-build_command = "python -m build"
+build_command = "python -m pip install --upgrade pip build && python -m build"
 version_toml = ["pyproject.toml:project.version"]
-
 
 version_variables = [
   'CITATION.cff:^\\s*version\\s*\\s*"(?P<version>\\d+\\.\\d+\\.\\d+([-+][0-9A-Za-z.]+)?)"\\s*$',
