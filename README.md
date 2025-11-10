@@ -15,7 +15,7 @@ commits and merge commits carrying those timestamps. PRs are orchestrated throug
   - [Table of contents](#table-of-contents)
   - [Features](#features)
   - [How it works (at a glance)](#how-it-works-at-a-glance)
-  - [Flowcharts \& Diagrams](#flowcharts--diagrams)
+  - [Flowcharts & Diagrams](#flowcharts--diagrams)
     - [End-to-end `commit-all` flow](#end-to-end-commit-all-flow)
     - [Sequence: commit → PR → merge](#sequence-commit--pr--merge)
     - [Timeline (Gantt) example](#timeline-gantt-example)
@@ -33,7 +33,7 @@ commits and merge commits carrying those timestamps. PRs are orchestrated throug
   - [Configuration](#configuration)
     - [Example timeline spec (for a simple runner)](#example-timeline-spec-for-a-simple-runner)
   - [Environment variables](#environment-variables)
-  - [Makefile \& scripts](#makefile--scripts)
+  - [Makefile & scripts](#makefile--scripts)
   - [Examples](#examples)
   - [FAQ](#faq)
   - [Troubleshooting](#troubleshooting)
@@ -77,19 +77,19 @@ commits and merge commits carrying those timestamps. PRs are orchestrated throug
 flowchart TD
     A["Run: legends commit-all"] --> B["Checkout base branch"]
     B --> C["Create/checkout feature branch"]
-    C --> D["Create change (or allow empty)"]
+    C --> D["Create change (or allow-empty)"]
     D --> E["Backdated commit on branch"]
     E --> F["Push branch (upstream if first push)"]
     F --> G["Open PR via gh"]
-    G --> H{Optional review/comment?}
+    G --> H{"Optional review/comment?"}
     H -->|Yes| I["gh pr review/comment"]
     H -->|No| J["Skip"]
-    I --> K["Checkout base & pull"]
+    I --> K["Checkout base and pull"]
     J --> K
     K --> L["Merge (no-ff, no-commit)"]
     L --> M["Create merge commit (backdated)"]
     M --> N["Push base"]
-    N --> O["Close PR & delete branch"]
+    N --> O["Close PR and delete branch"]
 ```
 
 ### Sequence: commit → PR → merge
@@ -97,20 +97,20 @@ flowchart TD
 ```mermaid
 sequenceDiagram
     participant Dev as Developer
-    participant CLI as "legends"
+    participant CLI as legends
     participant Git as git
-    participant GH as "gh (GitHub CLI)"
+    participant GH as gh
 
-    Dev->>CLI: commit-all --branch &lt;b&gt; --commit-date ... --merge-date ...
+    Dev->>CLI: commit-all --branch BRANCH --commit-date ... --merge-date ...
     CLI->>Git: checkout base, create/checkout branch
     CLI->>Git: commit (env: GIT_*_DATE=commit-date)
     CLI->>Git: push branch (set upstream if needed)
-    CLI->>GH: pr create --head &lt;b&gt; --base &lt;base&gt;
-    alt Optional
+    CLI->>GH: pr create --head BRANCH --base BASE
+    opt Optional
         CLI->>GH: pr review --approve / pr comment
     end
-    CLI->>Git: checkout base & pull
-    CLI->>Git: merge --no-ff --no-commit &lt;b&gt;
+    CLI->>Git: checkout base and pull
+    CLI->>Git: merge --no-ff --no-commit BRANCH
     CLI->>Git: commit (env: GIT_*_DATE=merge-date)
     CLI->>Git: push base
     CLI->>GH: pr close --delete-branch
@@ -151,7 +151,7 @@ gantt
 
 ```mermaid
 flowchart LR
-    A[Project defaults] --> B["YAML file (--config)"]
+    A["Project defaults"] --> B["YAML file (--config)"]
     B --> C["Environment variables"]
     C --> D["CLI flags"]
     D --> E["Effective runtime config"]
