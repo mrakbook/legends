@@ -1,0 +1,14 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "legends"
+abstract: "Local-first automation for realistic, backdated Git + GitHub workflows."
+version: "0.0.0"
+date-released: "2025-11-10"
+authors:
+  - family-names: "Karaoglanov"
+    given-names: "Boris"
+    email: "boris@mrakbook.com"
+    orcid: "https://orcid.org/0000-0000-0000-0000"
+keywords: ["git", "github", "cli", "automation", "backdated commits"]
+repository-code: "https://github.com/mrakbook/legends"
+license: "MIT"
