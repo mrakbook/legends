@@ -32,6 +32,17 @@ jobs:
       - name: Force branch to workflow SHA
         run: git reset --hard ${{ github.sha }}
 
+      # Ensure python and the 'build' package are available for PSR's build_command
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install build backend for PSR
+        run: |
+          python -m pip install -U pip
+          python -m pip install build
+
       - name: Semantic Version Release
         id: release
         uses: python-semantic-release/python-semantic-release@v10.5.0
