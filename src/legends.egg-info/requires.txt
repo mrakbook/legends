@@ -1,0 +1,9 @@
+PyYAML>=6.0
+
+[dev]
+pytest
+ruff
+black
+build
+python-semantic-release
+pyinstaller>=6

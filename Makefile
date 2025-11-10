@@ -55,6 +55,10 @@ help:
 	@echo "  make merge-pr          # backdated local merge of BRANCH into BASE"
 	@echo "  make commit-all        # commit -> PR -> backdated merge (one shot)"
 	@echo
+	@echo "Packaging:"
+	@echo "  make package-macos     # build single-file macOS binary via PyInstaller"
+	@echo "  make bundle-macos      # alias of package-macos"
+	@echo
 	@echo "Utilities:"
 	@echo "  make clean             # remove venv and build artifacts"
 
@@ -133,6 +137,16 @@ commit-all: install
 		--merge-date "$(MERGE_DATE)" \
 		--delete-branch
 
+# --- Packaging helpers ---
+
+.PHONY: package-macos
+package-macos:
+	./scripts/build_binary_macos.sh
+
+.PHONY: bundle-macos
+bundle-macos: package-macos
+
 .PHONY: clean
 clean:
-	rm -rf $(VENV) dist build *.egg-info .pytest_cache .mypy_cache
+	rm -rf $(VENV) dist build *.egg-info .pytest_cache .mypy_cache __pycache__ \
+		*.spec .venv-build .venv-release-dryrun

@@ -17,6 +17,12 @@ jobs:
       group: ${{ github.workflow }}-release-${{ github.ref_name }}
       cancel-in-progress: false
 
+    # Make step outputs available to downstream jobs
+    outputs:
+      released: ${{ steps.release.outputs.released }}
+      version:  ${{ steps.release.outputs.version }}
+      tag:      ${{ steps.release.outputs.tag }}
+
     # For tagging, pushing, and creating a GitHub Release
     permissions:
       contents: write
@@ -57,6 +63,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+
       - name: Patch CITATION.cff and commit
         if: steps.release.outputs.released == 'true'
         run: |
@@ -84,6 +91,57 @@ jobs:
           path: dist
           if-no-files-found: error
 
+  # Build single-file macOS binaries and upload them to the same Release
+  package-macos:
+    needs: release
+    if: needs.release.outputs.released == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-13
+            arch: amd64
+          - os: macos-14
+            arch: arm64
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout tag
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.release.outputs.tag }}
+          fetch-depth: 1
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install build deps & package
+        run: |
+          python -m pip install -U pip
+          python -m pip install pyinstaller
+          # Install the project (ensures resources are discoverable)
+          python -m pip install -e .
+          # Build a single-file binary
+          pyinstaller --onefile --name legends --paths src entrypoints/legends_app.py
+          # Prepare release assets
+          mkdir -p out
+          cp dist/legends "out/legends-darwin-${{ matrix.arch }}"
+          (cd out && shasum -a 256 "legends-darwin-${{ matrix.arch }}" > "legends-darwin-${{ matrix.arch }}.sha256")
+
+      - name: Upload macOS binaries to GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ needs.release.outputs.tag }}
+          files: |
+            out/legends-darwin-${{ matrix.arch }}
+            out/legends-darwin-${{ matrix.arch }}.sha256
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   # OPTIONAL: Publish to PyPI (requires Trusted Publisher setup or token)
   pypi:
     runs-on: ubuntu-latest
@@ -99,9 +157,6 @@ jobs:
           name: distribution-artifacts
           path: dist
 
-      # If you've configured your project as a PyPI Trusted Publisher,
-      # this works without a token (OIDC). Otherwise, replace this step
-      # with the same action and pass 'password: ${{ secrets.PYPI_API_TOKEN }}'.
       - name: Publish to PyPI (Trusted Publisher)
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
