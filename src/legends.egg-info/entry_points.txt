@@ -1,0 +1,2 @@
+[console_scripts]
+legends = legends.cli:main

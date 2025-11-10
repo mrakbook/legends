@@ -16,7 +16,7 @@ authors = [{ name = "Boris Karaoglanov" }]
 legends = "legends.cli:main"
 
 [project.optional-dependencies]
-dev = ["pytest", "ruff", "black", "build", "python-semantic-release"]
+dev = ["pytest", "ruff", "black", "build", "python-semantic-release", "pyinstaller>=6"]
 
 [tool.setuptools]
 package-dir = { "" = "src" }
@@ -47,7 +47,7 @@ allow_zero_version = true
 commit_parser = "conventional"
 tag_format = "v{version}"
 changelog_file = "CHANGELOG.md"
-build_command = "python -m pip install --upgrade pip build && python -m build"
+build_command = "python -m pip install --upgrade pip build setuptools wheel && python -m build"
 version_toml = ["pyproject.toml:project.version"]
 
 version_variables = [
