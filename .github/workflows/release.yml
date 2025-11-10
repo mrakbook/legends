@@ -1,0 +1,99 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+# Least-privilege default, then elevate per-job
+permissions:
+  contents: read
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.workflow }}-release-${{ github.ref_name }}
+      cancel-in-progress: false
+
+    # For tagging, pushing, and creating a GitHub Release
+    permissions:
+      contents: write
+      id-token: write
+
+    steps:
+      - name: Checkout (release branch)
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+
+      # Keep branch at the triggering SHA (recommended in PSR docs)
+      - name: Force branch to workflow SHA
+        run: git reset --hard ${{ github.sha }}
+
+      - name: Semantic Version Release
+        id: release
+        uses: python-semantic-release/python-semantic-release@v10.5.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          git_committer_name: "github-actions"
+          git_committer_email: "actions@users.noreply.github.com"
+
+      # Optional: keep CITATION.cff "version" & "date-released" in sync (non-release commit)
+      - name: Update CITATION.cff (post-release, optional)
+        if: steps.release.outputs.released == 'true'
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Patch CITATION.cff and commit
+        if: steps.release.outputs.released == 'true'
+        run: |
+          python scripts/update_citation.py --version "${{ steps.release.outputs.version }}"
+          git config user.name "github-actions"
+          git config user.email "actions@users.noreply.github.com"
+          git add CITATION.cff
+          git commit -m "docs: update CITATION.cff to v${{ steps.release.outputs.version }} [skip ci]"
+          git push
+
+      # Attach the built artifacts (dist/) to the GitHub Release just created
+      - name: Upload artifacts to GitHub Release
+        if: steps.release.outputs.released == 'true'
+        uses: python-semantic-release/publish-action@v10.5.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ steps.release.outputs.tag }}
+
+      # Archive the wheel/sdist as a workflow artifact for reference
+      - name: Upload dist/ as CI artifact
+        if: steps.release.outputs.released == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: distribution-artifacts
+          path: dist
+          if-no-files-found: error
+
+  # OPTIONAL: Publish to PyPI (requires Trusted Publisher setup or token)
+  pypi:
+    runs-on: ubuntu-latest
+    needs: release
+    if: needs.release.outputs.released == 'true'
+    permissions:
+      contents: read
+      id-token: write  # needed for PyPI Trusted Publishers
+    steps:
+      - name: Download built artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: distribution-artifacts
+          path: dist
+
+      # If you've configured your project as a PyPI Trusted Publisher,
+      # this works without a token (OIDC). Otherwise, replace this step
+      # with the same action and pass 'password: ${{ secrets.PYPI_API_TOKEN }}'.
+      - name: Publish to PyPI (Trusted Publisher)
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist
+          print-hash: true
+          verbose: true

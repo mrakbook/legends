@@ -15,6 +15,9 @@ authors = [{ name = "Your Name" }]
 [project.scripts]
 legends = "legends.cli:main"
 
+[project.optional-dependencies]
+dev = ["pytest", "ruff", "black", "build", "python-semantic-release"]
+
 [tool.setuptools]
 package-dir = { "" = "src" }
 include-package-data = true
@@ -38,3 +41,22 @@ line-length = 100
 [tool.black]
 line-length = 100
 target-version = ["py39", "py310", "py311", "py312"]
+
+[tool.semantic_release]
+allow_zero_version = true
+commit_parser = "conventional"
+tag_format = "v{version}"
+changelog_file = "CHANGELOG.md"
+build_command = "python -m build"
+version_toml = ["pyproject.toml:project.version"]
+
+
+version_variables = [
+  'CITATION.cff:^\\s*version\\s*\\s*"(?P<version>\\d+\\.\\d+\\.\\d+([-+][0-9A-Za-z.]+)?)"\\s*$',
+]
+
+[tool.semantic_release.branches]
+main = { match = "^main$", prerelease = false }
+master = { match = "^master$", prerelease = false }
+release = { match = "^release/.*$", prerelease = false }
+packaging = { match = "^packaging$", prerelease = false }
