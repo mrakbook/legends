@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security issues
+    url: https://github.com/mrakbook/legends/security/policy
+    about: Please do not file public issues for security problems.

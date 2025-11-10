@@ -1,0 +1,43 @@
+name: Bug report
+description: File a bug/defect
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Thank you for reporting a bug. Please fill out the sections below.
+  - type: input
+    id: summary
+    attributes:
+      label: Summary
+      description: What happened?
+      placeholder: Short description
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Tell us how to reproduce the issue.
+      placeholder: 1. ...\n2. ...\n3. ...
+      render: bash
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+  - type: input
+    id: versions
+    attributes:
+      label: Versions
+      description: OS, Python, legends version, gh version, git version
+    validations:
+      required: false
